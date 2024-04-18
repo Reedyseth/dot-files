@@ -17,9 +17,10 @@ wp_indeed_updates() {
     local new_branch=""
     local jira_id=""
     local site_id=""
+    local db_update=""
 
     # Parse command-line options
-    OPTS=$(getopt -o n:j:s: --long new-branch:,jira-id:,site-id: -n 'wp_indeed_update' -- "$@")
+    OPTS=$(getopt -o n:j:s:d: --long new-branch:,jira-id:,site-id:,db-update: -n 'wp_indeed_update' -- "$@")
     if [ $? != 0 ]; then
         echo -e "\e[91mInvalid option provided\e[0m" >&2
         return 1
@@ -41,6 +42,10 @@ wp_indeed_updates() {
                 site_id="$2"
                 shift 2
                 ;;
+            -d|--db-update)
+                db_update="$2"
+                shift 2
+                ;;
             --)
                 shift
                 break
@@ -58,6 +63,8 @@ wp_indeed_updates() {
 
     # Now we change or PWD to the Site ID.
     tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+    # Enable VPN
+    tmux send-keys "warp-cli connect" C-m
 
     if [ "$new_branch" = "yes" ]; then
         tmux send-keys "git checkout development; git pull; git checkout -b jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
@@ -70,9 +77,15 @@ wp_indeed_updates() {
        tmux send-keys "git merge development --no-edit" C-m
     fi
 
-    # Now we update the database.
-    tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/" C-m
-    tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+    if [ "$db_update" = "yes" ]; then
+        # Now we update the database.
+        tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/" C-m
+        tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/; warp-cli disconnect" C-m
+    else
+        # Disable VPN
+        tmux send-keys "warp-cli disconnect" C-m
+    fi
+
 }
 
 wp_release_indeed() {
