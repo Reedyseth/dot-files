@@ -1,0 +1,139 @@
+# ~/.zsh_functions/my_functions.sh
+
+create_indeed_branch() {
+    git checkout -b jira/iam_ibarragan/WORDPRESS-$1
+}
+
+change_to_site_dev() {
+    local site_id=$1
+    # Create a new tmux window for the website. We don't select a window number since Tmux will switch to the new window.
+    tmux new-window -n DEV_$site_id
+    # Now we change or PWD to the Site ID.
+    tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+    tmux send-keys "git checkout development; git pull; git checkout staging; git pull; git checkout development; git branch" C-m
+}
+
+wp_indeed_updates() {
+    local new_branch=""
+    local jira_id=""
+    local site_id=""
+
+    # Parse command-line options
+    OPTS=$(getopt -o n:j:s: --long new-branch:,jira-id:,site-id: -n 'wp_indeed_update' -- "$@")
+    if [ $? != 0 ]; then
+        echo -e "\e[91mInvalid option provided\e[0m" >&2
+        return 1
+    fi
+    eval set -- "$OPTS"
+
+    # Extract options and their arguments
+    while true; do
+        case "$1" in
+            -n|--new-branch)
+                new_branch="$2"
+                shift 2
+                ;;
+            -j|--jira-id)
+                jira_id="$2"
+                shift 2
+                ;;
+            -s|--site-id)
+                site_id="$2"
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo -e "\e[91mInvalid option provided\e[0m" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    # Create a new tmux window for the website. We don't select a window number since Tmux will switch to the new window.
+    tmux new-window -n WP_Updates_for_$site_id
+     
+
+    # Now we change or PWD to the Site ID.
+    tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+
+    if [ "$new_branch" = "yes" ]; then
+        tmux send-keys "git checkout development; git pull; git checkout -b jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+    else
+       tmux send-keys "git checkout jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+       tmux send-keys "git pull origin jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+       tmux send-keys "git checkout development" C-m
+       tmux send-keys "git pull" C-m
+       tmux send-keys "git checkout jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+       tmux send-keys "git merge development --no-edit" C-m
+    fi
+
+    # Now we update the database.
+    tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/" C-m
+    tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+}
+
+wp_release_indeed() {
+    local instance=""
+    local jira_id=""
+    local site_id=""
+
+    # Parse command-line options
+    OPTS=$(getopt -o i:j:s: --long instance:,jira-id:,site-id: -n 'wp_release_indeed' -- "$@")
+    if [ $? != 0 ]; then
+        echo -e "\e[91mInvalid option provided\e[0m" >&2
+        return 1
+    fi
+    eval set -- "$OPTS"
+
+    # Extract options and their arguments
+    while true; do
+        case "$1" in
+            -i|--instance)
+                instance="$2"
+                shift 2
+                ;;
+            -j|--jira-id)
+                jira_id="$2"
+                shift 2
+                ;;
+            -s|--site-id)
+                site_id="$2"
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo -e "\e[91mInvalid option provided\e[0m" >&2
+                return 1
+                ;;
+        esac
+    done
+
+
+    # Now we change or PWD to the Site ID.
+    "cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+
+    if [ "$instance" = "qa" ]; then
+        tmux send-keys "git checkout development; git pull; git checkout -b jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+    else
+       tmux send-keys "git checkout jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+       tmux send-keys "git pull origin jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+       tmux send-keys "git checkout development" C-m
+       tmux send-keys "git pull" C-m
+       tmux send-keys "git checkout jira/iam_ibarragan/WORDPRESS-$jira_id" C-m
+       tmux send-keys "git merge development --no-edit" C-m
+    fi
+
+    # Now we update the database.
+    tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/" C-m
+    tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/" C-m
+}
+
+wpe_ssh () {
+	ssh -i ~/.ssh/id_rsa_indeed $1@$1.ssh.wpengine.net
+}
