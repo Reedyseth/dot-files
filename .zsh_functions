@@ -4,6 +4,44 @@ create_indeed_branch() {
     git checkout -b jira/iam_ibarragan/WORDPRESS-$1
 }
 
+osite() {
+	current_directory=$(basename "$PWD")
+
+	brave-browser $current_directory/wp-admin/
+}
+
+push_current_branch() {
+	git branch --show-current | xargs git push origin
+}
+
+jira_commit(){
+	echo -n "Jira ID: "
+	read id
+
+	echo -n "Message: "
+	read message
+
+	git commit -m "WORDPRESS-$id: $message"
+}
+
+# Add Team to a websites
+function add_team_to_site() {
+  site=$1
+  ldaps=("iam_socano" "iam_rsibrian" "iam_ibarragan" "iam_jfagner" "iam_mvunge" "iam_dsanchez" "iam_jrodriguez")
+
+  wp_user_create=""
+  wp_super_admin=""
+  for ldap in ${ldaps[@]}
+  do
+    wp_user_create+="wp user create $ldap $ldap@contractor.indeed.com --role=administrator; "
+    wp_super_admin+="wp super-admin add $ldap; "
+  done
+
+  # for site in 
+  echo "Adding users to $site"
+  ssh $site@$site.ssh.wpengine.net "cd sites/$site; echo 'Creating user on $site'; $wp_user_create $wp_super_admin exit;"
+}
+
 change_to_site_dev() {
     local site_id=$1
     # Create a new tmux window for the website. We don't select a window number since Tmux will switch to the new window.
