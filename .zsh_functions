@@ -14,6 +14,42 @@ push_current_branch() {
 	git branch --show-current | xargs git push origin
 }
 
+rpass_multisite() {
+	site=$1
+	docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root user update iam_ibarragan --user_pass=toor"; docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root plugin deactivate miniorange-oauth-oidc-single-sign-on miniorange-force-authentication-addon --network --skip-plugins"
+
+}
+
+rpass() {
+	site=$1
+	WPDEV_PATH=~/Documents/WORK/repositories/wpdev/www/
+	docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root user update iam_ibarragan --user_pass=toor"; docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root plugin deactivate miniorange-oauth-oidc-single-sign-on miniorange-force-authentication-addon --skip-plugins"
+
+}
+
+# Install a plugin from a ZIP file in a site.
+# Usage: ipluginsite <site> <zip_file>
+# Example: ipluginsite indeeddev advanced-custom-fields-pro.zip
+ipluginsite() {
+	site=$1
+	plugin=$2
+	docker exec -i wpdev-php bash -c "cd $site.wpengine.test && pwd && wp --allow-root plugin install ../$plugin --force"
+
+}
+
+# Remove untracked files. I haven't tested with folders.
+# Usage: runtrackfiles
+# Example: runtrackfiles
+runtrackfiles() {
+	git status --porcelain | grep "??" | sed 's/^?? //' | xargs rm
+}
+# Retrieve a file from a WPEngine site
+# Usage: scpget <instance> <remote_file>
+# Example: scpget indeeddev wp-contents/plugins/example/remote_file.php 
+function scpget() {
+        scp -O $1@$1.ssh.wpengine.net:~/sites/$1/$2 .
+}
+
 jira_commit(){
 	echo -n "Jira ID: "
 	read id
@@ -58,7 +94,7 @@ wp_indeed_updates() {
     local db_update=""
 
     # Parse command-line options
-    OPTS=$(getopt -o n:j:s:d: --long new-branch:,jira-id:,site-id:,db-update: -n 'wp_indeed_update' -- "$@")
+    OPTS=$(getopt -o n:j:s:d:m: --long new-branch:,jira-id:,site-id:,db-update:,multisite: -n 'wp_indeed_update' -- "$@")
     if [ $? != 0 ]; then
         echo -e "\e[91mInvalid option provided\e[0m" >&2
         return 1
@@ -82,6 +118,10 @@ wp_indeed_updates() {
                 ;;
             -d|--db-update)
                 db_update="$2"
+                shift 2
+                ;;
+            -m|--multisite)
+                multisite="$2"
                 shift 2
                 ;;
             --)
@@ -116,9 +156,18 @@ wp_indeed_updates() {
     fi
 
     if [ "$db_update" = "yes" ]; then
+		UPDATE_PASS="docker exec -i wpdev-php bash -c 'cd $site_id.wpengine.test && wp --allow-root user update iam_ibarragan --user_pass=toor'"
+		DEACTIVATE_MULTI="docker exec -i wpdev-php bash -c 'cd $site_id.wpengine.test && wp --allow-root plugin deactivate miniorange-oauth-oidc-single-sign-on miniorange-force-authentication-addon --network --skip-plugins'"
+		DEACTIVATE_SINGLE="docker exec -i wpdev-php bash -c 'cd $site_id.wpengine.test && wp --allow-root plugin deactivate miniorange-oauth-oidc-single-sign-on miniorange-force-authentication-addon --skip-plugins'"
         # Now we update the database.
         tmux send-keys "cd ~/Documents/WORK/INDEED/repositories/wpdev/" C-m
-        tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/; warp-cli disconnect" C-m
+		# We reset the password.
+		# Deactivate the miniorange plugins for multisite or single.
+		if [ "multisite" = "yes" ]; then
+			tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/; warp-cli disconnect; $UPDATE_PASS; $DEACTIVATE_MULTI" C-m
+		else
+			tmux send-keys "./wpdev update-db $site_id --use-local-db; cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$site_id.wpengine.test/; warp-cli disconnect; $UPDATE_PASS; $DEACTIVATE_SINGLE" C-m
+		fi
     else
         # Disable VPN
         tmux send-keys "warp-cli disconnect" C-m
