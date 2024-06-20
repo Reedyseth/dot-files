@@ -2,10 +2,10 @@
 " " - For Neovim: stdpath('data') . '/plugged'
 " " - Avoid using standard Vim directory names like 'plugin'
 call plug#begin('~/.vim/plugged')
-Plug 'scrooloose/nerdtree'
 Plug 'drewtempelmeyer/palenight.vim'
+Plug 'morhetz/gruvbox'
+Plug 'scrooloose/nerdtree'
 Plug 'kyoz/purify', { 'rtp': 'vim' }
-" Plug 'nathanaelkane/vim-indent-guides'
 Plug 'itchyny/lightline.vim'
 Plug 'scrooloose/syntastic'
 Plug 'godlygeek/tabular'
@@ -22,6 +22,6 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'ryanoasis/vim-devicons'
 Plug 'tpope/vim-surround'
 Plug 'vim-scripts/dbext.vim'
-
+" Plug 'nathanaelkane/vim-indent-guides'
 " Initialize plugin system
 call plug#end()
