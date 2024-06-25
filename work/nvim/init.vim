@@ -36,8 +36,8 @@ set tags=tags;/
 " Theming and look and feel.
 set background=dark
 "colorscheme gruvbox
-colorscheme palenight
-" colorscheme purify
+"colorscheme palenight
+colorscheme purify
 syntax on
 
 " === Mappings ===
