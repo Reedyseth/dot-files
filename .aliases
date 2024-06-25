@@ -1,0 +1,9 @@
+# Alias that I common use.
+#
+# @since 25-jun-2024
+#
+alias pbcopy='xsel --clipboard --input'
+alias pbpaste='xsel --clipboard --output'
+alias gst='git status'
+alias cwww='cd ~/Documents/WORK/INDEED/repositories/wpdev/www/'
+alias gdiff='git diff'
