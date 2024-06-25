@@ -10,7 +10,7 @@ osite() {
 	brave-browser $current_directory/wp-admin/
 }
 
-push_current_branch() {
+pcurrentBranch() {
 	git branch --show-current | xargs git push origin
 }
 
@@ -56,11 +56,11 @@ ipluginsite() {
 
 }
 
-# Remove untracked files. I haven't tested with folders.
-# Usage: runtrackfiles
-# Example: runtrackfiles
-runtrackfiles() {
-	git status --porcelain | grep "??" | sed 's/^?? //' | xargs rm
+# Remove untracked files and folder.
+# Usage: duntrackfiles
+# Example: duntrackfiles
+duntrackfiles() {
+	git status --porcelain | grep "??" | sed 's/^?? //' | xargs rm -rf
 }
 # Retrieve a file from a WPEngine site
 # Usage: scpget <instance> <remote_file>
