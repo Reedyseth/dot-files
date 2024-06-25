@@ -14,6 +14,13 @@ pcurrentBranch() {
 	git branch --show-current | xargs git push origin
 }
 
+# Checkout a indeed jira branch.
+# Usage: ckindeedbranch 8557
+# Example 1: ckindeedbranch 8557
+ckindeedbranch() {
+	git checkout jira/iam_ibarragan/WORDPRESS-$1
+}
+
 # Creates a new directory and cd into it. Creates dirs multiple levels.
 # Usage: mkdirchange myfolder
 # Example 1: mkdirchange myfolder
