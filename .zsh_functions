@@ -53,6 +53,18 @@ rpass() {
 
 }
 
+rpass_multisite2() {
+	site=$1
+	docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root user update iam_ibarragan@contractor.indeed.com --user_pass=toor"; docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root plugin deactivate miniorange-oauth-oidc-single-sign-on miniorange-force-authentication-addon --network --skip-plugins"
+
+}
+
+rpass2() {
+	site=$1
+	WPDEV_PATH=~/Documents/WORK/repositories/wpdev/www/
+	docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root user update iam_ibarragan@contractor.indeed.com --user_pass=toor"; docker exec -i wpdev-php bash -c "cd $site.wpengine.test && wp --allow-root plugin deactivate miniorange-oauth-oidc-single-sign-on miniorange-force-authentication-addon --skip-plugins"
+
+}
 # Install a plugin from a ZIP file in a site.
 # Usage: ipluginsite <site> <zip_file>
 # Example: ipluginsite indeeddev advanced-custom-fields-pro.zip
