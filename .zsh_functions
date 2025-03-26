@@ -1,7 +1,33 @@
 # ~/.zsh_functions/my_functions.sh
 
+systemUpdate() {
+	sudo apt update; sudo apt upgrade -y; sudo apt autoremove -y
+	# Update Indeed repos.
+	update-managed-repos
+	# Snap update.
+	sudo snap refresh
+	# Flatpak update.
+	sudo flatpak update
+}
+
 create_indeed_branch() {
     git checkout -b jira/iam_ibarragan/WORDPRESS-$1
+}
+
+testfailApi(){
+	setopt xtrace
+	curl -H "Origin: https://example.com" -X GET "https://$1.wpengine.test/wp-json/mwm/v1/statistics" -k
+	unsetopt xtrace
+}
+
+testPassApi(){
+	setopt xtrace
+	curl -H "Origin: https://$1.wpengine.test" -X GET "https://$1.wpengine.test/wp-json/mwm/v1/statistics" -k
+	unsetopt xtrace
+}
+
+cmwm(){
+	cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$1.wpengine.test/wp-content/plugins/marketing-web-modules/
 }
 
 osite() {
@@ -10,8 +36,70 @@ osite() {
 	brave-browser $current_directory/wp-admin/
 }
 
+ogitlab() {
+	current_directory=$(basename "$PWD")
+	REPO_NAME=$(echo "$current_directory" | cut -d'.' -f1)
+
+	brave-browser https://code.corp.indeed.com/wpdev/$REPO_NAME
+}
+
 pcurrentBranch() {
 	git branch --show-current | xargs git push origin
+}
+
+releaseupdate() {
+	SITE=$1
+	JIRA_ID=$2
+
+	if [[ -z "$1" ]]; then
+		echo "Please provide the website as parameter!!"
+		return 1
+	fi
+
+	if [[ -z "$2" ]]; then
+		echo "Please provide the Jira ID!!"
+		return 1
+	fi
+	
+#	setopt xtrace
+	# Switch to the indeed www path.
+	cwww
+	# Now switch to the actual website.
+	cd $SITE.wpengine.test
+	# Now checkout to the working branch. We don´t sync because nobody should be working in the site. Is not a common branch.
+	git checkout jira/iam_ibarragan/WORDPRESS-$2
+	# get last previous branch name.
+    BRANCH=$(git branch --show-current)
+
+	# Now sync our local development branch and integrate our changes.
+	git checkout development; git pull; git merge $BRANCH --no-edit; git status
+	#Get the number of commits that local is ahead.
+	AHEAD=$(git status -sb | grep -oP '(?<=ahead )\d+')
+
+	if [[ $AHEAD -gt 0 ]]; then
+		echo ""
+		git --no-pager log @{u}..HEAD -n $AHEAD --oneline
+		echo ""
+	fi
+
+ 	# Prompt the user to confirm if all is good to push the changes
+    read "PUSH_CHANGES?All good to push? [y/N]: "
+
+    # Enable case-insensitive matching for the user's response
+    setopt nocasematch
+
+    # Check if the user confirmed with 'y' or 'yes' (case-insensitive)
+    if [[ $PUSH_CHANGES =~ ^(y|yes)$ ]]
+    then
+        echo "Pushing changes..."
+        git push
+    else
+        echo "Maybe fix issues and push the changes."
+    fi
+
+    # Disable case-insensitive matching
+    unsetopt nocasematch
+#	unsetopt xtrace
 }
 
 # Checkout a indeed jira branch.
