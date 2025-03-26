@@ -26,14 +26,30 @@ testPassApi(){
 	unsetopt xtrace
 }
 
+# cd into the plugins folder while being anywhere of the website location.
+# If I am in /home/user/wpdev/www/indeedmtech.wpengine.test/plugins/marketing-web-modules it
+# will cd into /home/user/wpdev/www/indeedmtech.wpengine.test/plugins
+# The only constraint is that you need to be into a indeed website. You can use
+# `cwww indeedmtech && goPluginspath` anywhere to achieve that result.
+#
+# @since 26-Mar-2025
+#
+goPluginsPath() {
+	# Find the website root path.
+	WEBSITE_DIR=$(echo "$PWD" | sed -E 's/(\.test)\/.*/\1/')
+	# Now move into the wp-content/plugins path
+	cd $WEBSITE_DIR/wp-content/plugins
+}
+
 cmwm(){
 	cd ~/Documents/WORK/INDEED/repositories/wpdev/www/$1.wpengine.test/wp-content/plugins/marketing-web-modules/
 }
 
 osite() {
-	current_directory=$(basename "$PWD")
+	WEBSITE_DIR=$(echo "$PWD" | sed -E 's/(\.test)\/.*/\1/')
+	WEBSITE=$(basename "$WEBSITE_DIR")
 
-	brave-browser $current_directory/wp-admin/
+	brave-browser $WEBSITE/wp-admin/
 }
 
 ogitlab() {
