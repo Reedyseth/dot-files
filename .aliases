@@ -2,7 +2,7 @@
 #
 # @since 25-jun-2024
 #
-alias pbcopy='xsel --clipboard --input'
+alias pbcopy="xsel --clipboard --input < <(echo -n)"
 alias pbpaste='xsel --clipboard --output'
 alias gst='git status'
 alias cwww='cd ~/Documents/WORK/INDEED/repositories/wpdev/www/'
@@ -11,3 +11,4 @@ alias gpush='git push'
 alias gcheckout='git checkout'
 alias gchdev='git checkout development'
 alias gchstg='git checkout staging'
+alias gch='git checkout'
